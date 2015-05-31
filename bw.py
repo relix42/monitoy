@@ -59,7 +59,7 @@ while 1:
             statsd.gauge("{}.{}".format(interface, stat), stats[interface][stat])
             scounter += 1
     statsd.gauge("bw.published_stats", scounter)
-    statsd.counter("bw.publish_sessions")
+    statsd.incr("bw.publish_sessions")
     sleep(1)
 
 
