@@ -22,7 +22,7 @@ class PerIP(object):
     def get_iptables_data(self, table):
         results = list()
         command = "/sbin/iptables -L {} -nvx".format(table)
-        for line in run_command(command):
+        for line in self.run_command(command):
             results.append(line)
         res = dict()
         for line in results[2:]:
