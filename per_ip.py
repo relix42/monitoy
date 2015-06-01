@@ -13,16 +13,14 @@ class PerIP(object):
             maxudpsize=512)
 
     def run_command(self, command):
-        p = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+        p = subprocess.Popen(command,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
         return iter(p.stdout.readline, b'')
 
     def get_iptables_data(self, table):
         results = list()
         command = "/sbin/iptables -L {} -nvx".format(table)
-        print command
         for line in self.run_command(command):
             results.append(line)
         res = dict()
