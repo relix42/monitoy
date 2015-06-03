@@ -4,6 +4,8 @@ from time import sleep
 from statsd import StatsClient
 import subprocess
 
+TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
+
 class PerIP(object):
     def __init__(self):
         self.statsd = StatsClient(
@@ -11,16 +13,21 @@ class PerIP(object):
             port=8125,
             prefix='firewall',
             maxudpsize=512)
+        self.last_vals = self.get_stats()
+        sleep(5)
 
     def run_command(self, command):
-        p = subprocess.Popen(command,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT)
-        return iter(p.stdout.readline, b'')
+        try:
+            p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            return iter(p.stdout.readline, b'')
+        except Exception as e:
+            print "Can run '{}' because {}".format(command, e)
+            return dict()
 
     def get_iptables_data(self, table):
         results = list()
-        command = "/sbin/iptables -L {} -nvx".format(table)
+        command = ['/sbin/iptables', '-L', table, '-nvx']
+        #command = "/sbin/iptables -L {} -nvx".format(table)
         for line in self.run_command(command):
             results.append(line)
         res = dict()
@@ -44,6 +51,30 @@ class PerIP(object):
                     res[result[8]]['in_bytes'] = result[1]
         return res
 
+    def get_stats(self):
+        stats = dict()
+        for table in TABLES:
+            stats.update(self.get_iptables_data(table))
+        return stats
+
+    def calc_stats(self):
+        self.change = dict()
+        self.current = self.get_stats()
+        for key in self.current.keys():
+            self.change[key] = dict()
+            for stat in self.current[key].keys():
+                # print "{}.{} == {} - {}".format(
+                #    key,
+                #    stat,
+                #    int(self.current[key][stat]),
+                #    int(self.last_vals[key].get(stat, 0)))
+                try:
+                    self.change[key][stat] = int(self.current[key][stat]) - int(self.last_vals[key].get(stat, 0))
+                except ValueError:
+                    self.change[key][stat] = int(self.current[key][stat])
+        self.last_vals = self.current
+        return self.change
+
     def post_stats(self, stats):
         for stat in stats.keys():
             for name in stats[stat]:
@@ -52,11 +83,8 @@ class PerIP(object):
 perip = PerIP()
 
 while 1:
-    forwards = perip.get_iptables_data('FORWARD')
-    inputs = perip.get_iptables_data('INPUT')
-    outputs = perip.get_iptables_data('OUTPUT')
-    locals = dict(inputs.items() + output.items())
+    current = perip.calc_stats()
+    perip.post_stats(current)
 
-    perip.post_stats(forwards)
-    perip.post_stats(locals)
-    sleep(1)
+    print "Sleeping 5s"
+    sleep(5)

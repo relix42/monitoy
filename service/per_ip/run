@@ -1,0 +1,3 @@
+#!/usr/bash
+
+exec /usr/bin/python2.7 /apps/monitoy/per_ip.py
