@@ -5,6 +5,7 @@ from statsd import StatsClient
 import subprocess
 
 DHCP_LEASES_FILE = "/storage/kaiju.leases"
+HOSTS = "/etc/hosts"
 
 TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
 
