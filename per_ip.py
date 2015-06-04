@@ -3,6 +3,7 @@
 from time import sleep
 from statsd import StatsClient
 import subprocess
+import re
 
 DHCP_LEASES_FILE = "/storage/kaiju.leases"
 HOSTS = "/etc/hosts"
@@ -105,7 +106,7 @@ class PerIP(object):
             leases[parts[2]]['hostname'] = parts[3]
             leases[parts[2]]['mac'] = parts[2]
         fh = open(HOSTS, 'r')
-        hosts = rh.readlines()
+        hosts = fh.readlines()
         fh.close()
         for line in hosts:
             if len(re.sub('\s*', '', line)) and not line.startswith('#'):
