@@ -110,7 +110,7 @@ class PerIP(object):
         fh.close()
         for line in hosts:
             if len(re.sub('\s*', '', line)) and not line.startswith('#'):
-                parts = line.split('\t+')
+                parts = line.split()
                 print parts
                 leases[parts[0]] = dict()
                 leases[parts[0]]['hostname'] = parts[1]
