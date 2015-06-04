@@ -80,11 +80,13 @@ class PerIP(object):
     def post_stats(self, stats):
         names = self.get_current_leases()
         for stat in stats.keys():
+            print "{}".format(stat)
             for name in stats[stat]:
-                if name in names.keys():
-                    self.statsd.gauge("{}.{}".format(stat, names[stats][stat][name]['hostname']), stats[stat][name])
-                elif name == '10.0.42.1':
-                    self.statsd.gauge("{}.{}".format(stat, 'localhost'), stats[stat][name])
+                print "  {}".format(name)
+                if stat in names.keys():
+                    self.statsd.gauge("{}.{}".format(names[stat]['hostname'], name), stats[stat][name])
+                elif stat == '10.0.42.1':
+                    self.statsd.gauge("{}.{}".format('localhost', name), stats[stat][name])
                 else:
                     self.statsd.gauge("{}.{}".format(stat, name), stats[stat][name])
 
@@ -101,7 +103,15 @@ class PerIP(object):
             leases[parts[2]] = dict()
             leases[parts[2]]['hostname'] = parts[3]
             leases[parts[2]]['mac'] = parts[2]
-
+        fh = open(HOSTS, 'r')
+        hosts = rh.readlines()
+        fh.close()
+        for line in hosts:
+            if len(re.sub('\s*', '', line)) and not line.startswith('#'):
+                parts = line.split('\s+')
+                leases[parts[0]] = dict()
+                leases[parts[0]]['hostname'] = parts[1]
+        return leases
 
 perip = PerIP()
 
