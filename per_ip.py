@@ -87,7 +87,7 @@ class PerIP(object):
                 print "  {}".format(name)
                 if stat in names.keys():
                     self.statsd.gauge("{}.{}".format(names[stat]['hostname'], name), stats[stat][name])
-                    print "    hostname found"
+                    print "    hostname {} found".format(names[stat]['hostname'])
                 elif stat == '10.0.42.1':
                     self.statsd.gauge("{}.{}".format('localhost', name), stats[stat][name])
                     print "    subbing localhost"
