@@ -4,6 +4,8 @@ from time import sleep
 from statsd import StatsClient
 import subprocess
 
+DHCP_LEASES_FILE = /storage/kaiju.leases
+
 TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
 
 class PerIP(object):
@@ -76,9 +78,30 @@ class PerIP(object):
         return self.change
 
     def post_stats(self, stats):
+        names = self.get_current_leases()
         for stat in stats.keys():
             for name in stats[stat]:
-                self.statsd.gauge("{}.{}".format(stat, name), stats[stat][name])
+                if name in names.keys():
+                    self.statsd.gauge("{}.{}".format(stat, names[stats][stat][name]['hostname']), stats[stat][name])
+                elif name == '10.0.42.1':
+                    self.statsd.gauge("{}.{}".format(stat, 'localhost'), stats[stat][name])
+                else:
+                    self.statsd.gauge("{}.{}".format(stat, name), stats[stat][name])
+
+    def get_current_leases(self):
+        fh = open(DHCP_LEASES_FILE, 'r')
+        leases = dict()
+        entries = fh.readlines()
+        fh.close()
+        for entry in entries:
+            # Sample Entry
+            # 0          1                 2           3        4
+            # 1433393540 04:f7:e4:8c:c3:11 10.0.42.174 HOSTNAME 01:04:f7:e4:8c:c3:11
+            parts = entry.split()
+            leases[parts[2]] = dict()
+            leases[parts[2]]['hostname'] = parts[3]
+            leases[parts[2]]['mac'] = parts[2]
+
 
 perip = PerIP()
 
