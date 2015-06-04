@@ -87,10 +87,13 @@ class PerIP(object):
                 print "  {}".format(name)
                 if stat in names.keys():
                     self.statsd.gauge("{}.{}".format(names[stat]['hostname'], name), stats[stat][name])
+                    print "    hostname found"
                 elif stat == '10.0.42.1':
                     self.statsd.gauge("{}.{}".format('localhost', name), stats[stat][name])
+                    print "    subbing localhost"
                 else:
                     self.statsd.gauge("{}.{}".format(stat, name), stats[stat][name])
+                    print "    hostname not found, using IP"
 
     def get_current_leases(self):
         fh = open(DHCP_LEASES_FILE, 'r')
