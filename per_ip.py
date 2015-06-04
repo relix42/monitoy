@@ -4,7 +4,7 @@ from time import sleep
 from statsd import StatsClient
 import subprocess
 
-DHCP_LEASES_FILE = /storage/kaiju.leases
+DHCP_LEASES_FILE = "/storage/kaiju.leases"
 
 TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
 
