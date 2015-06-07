@@ -90,14 +90,13 @@ class PerIP(object):
         for stat in stats.keys():
             for name in stats[stat]:
                 if stat in names.keys():
-                    self.statsd.gauge("{}.{}".format(names[stat]['hostname'], name), stats[stat][name])
-                    print "    Posting {} == {} = {}".format(names[stat]['hostname'], name, stats[stat][name])
+                    host = names[stat]['hostname']
                 elif stat == '10.0.42.1':
-                    self.statsd.gauge("{}.{}".format('localhost', name), stats[stat][name])
-                    print "    Posting {} == {} = {}".format('localhost', name, stats[stat][name])
+                    host = 'localhost'
                 else:
-                    self.statsd.gauge("{}.{}".format(stat, name), stats[stat][name])
-                    print "    Posting {} == {} = {}".format(stat, name, stats[stat][name])
+                    host = stat
+                self.statsd.gauge("{}.{}".format(host, name), stats[stat][name])
+                print "    Posting {} == {} = {}".format(host, name, stats[stat][name])
 
     def get_current_leases(self):
         fh = open(DHCP_LEASES_FILE, 'r')
@@ -110,8 +109,11 @@ class PerIP(object):
             # 1433393540 04:f7:e4:8c:c3:11 10.0.42.174 HOSTNAME 01:04:f7:e4:8c:c3:11
             parts = entry.split()
             leases[parts[2]] = dict()
-            leases[parts[2]]['hostname'] = parts[3]
-            leases[parts[2]]['mac'] = parts[2]
+            if parts[3] == "*":
+                leases[parts[2]]['hostname'] = parts[1]
+            else:
+                leases[parts[2]]['hostname'] = parts[3]
+            leases[parts[2]]['mac'] = parts[1]
         fh = open(HOSTS, 'r')
         hosts = fh.readlines()
         fh.close()
