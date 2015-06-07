@@ -88,19 +88,16 @@ class PerIP(object):
     def post_stats(self, stats):
         names = self.get_current_leases()
         for stat in stats.keys():
-            print "{}".format(stat)
             for name in stats[stat]:
-                print "  {}".format(name)
-                print "    Checking if {} is in {}".format(stat, names.keys())
                 if stat in names.keys():
                     self.statsd.gauge("{}.{}".format(names[stat]['hostname'], name), stats[stat][name])
-                    print "    hostname {} found".format(names[stat]['hostname'])
+                    print "    Posting {} == {} = {}".format(names[stat]['hostname'], name, stats[stat][name])
                 elif stat == '10.0.42.1':
                     self.statsd.gauge("{}.{}".format('localhost', name), stats[stat][name])
-                    print "    subbing localhost"
+                    print "    Posting {} == {} = {}".format('localhost', name, stats[stat][name])
                 else:
                     self.statsd.gauge("{}.{}".format(stat, name), stats[stat][name])
-                    print "    hostname not found, using IP"
+                    print "    Posting {} == {} = {}".format(stat, name, stats[stat][name])
 
     def get_current_leases(self):
         fh = open(DHCP_LEASES_FILE, 'r')
