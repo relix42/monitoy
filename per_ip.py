@@ -95,7 +95,7 @@ class PerIP(object):
                     host = 'localhost'
                 else:
                     host = stat
-                self.statsd.gauge("{}.{}".format(host, name), stats[stat][name])
+                self.statsd.gauge("{}.byHost.{}".format(host, name), stats[stat][name])
                 print "    Posting {} == {} = {}".format(host, name, stats[stat][name])
 
     def get_current_leases(self):
