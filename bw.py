@@ -56,9 +56,9 @@ while 1:
     scounter = 0
     for interface in stats.keys():
         for stat in stats[interface].keys():
-            statsd.gauge("{}.byInterface.{}".format(interface, stat), stats[interface][stat])
+            statsd.gauge("byInterface.{}.{}".format(interface, stat), stats[interface][stat])
             scounter += 1
-            print "{}.byInterface.{} = {}".format(interface, stat, stats[interface][stat])
+            print "byInterface.{}.{} = {}".format(interface, stat, stats[interface][stat])
     statsd.gauge("bw.published_stats", scounter)
     statsd.incr("bw.publish_sessions")
     sleep(1)

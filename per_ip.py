@@ -7,7 +7,8 @@ import re
 
 DHCP_LEASES_FILE = "/storage/kaiju.leases"
 HOSTS = "/etc/hosts"
-TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
+# TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
+TABLES = ['FORWARD']
 STATSD_HOST = '10.0.42.28'
 STATSD_PORT = 8125
 STATSD_PREFIX = 'firewall'
@@ -95,8 +96,8 @@ class PerIP(object):
                     host = 'localhost'
                 else:
                     host = stat
-                self.statsd.gauge("{}.byHost.{}".format(host, name), stats[stat][name])
-                print "    Posting {}.byHost.{} = {}".format(host, name, stats[stat][name])
+                self.statsd.gauge("byHost.{}.{}".format(host, name), stats[stat][name])
+                print "    Posting byHost.{}.{} = {}".format(host, name, stats[stat][name])
 
     def get_current_leases(self):
         fh = open(DHCP_LEASES_FILE, 'r')
