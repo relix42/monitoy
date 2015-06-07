@@ -91,11 +91,11 @@ class PerIP(object):
         for stat in stats.keys():
             for name in stats[stat]:
                 if stat in names.keys():
-                    host = names[stat]['hostname']
+                    host = names[stat]['hostname'].replace(".", "_")
                 elif stat == '10.0.42.1':
                     host = 'localhost'
                 else:
-                    host = stat
+                    host = stat.replace(".", "_")
                 self.statsd.gauge("byHost.{}.{}".format(host, name), stats[stat][name])
                 print "    Posting byHost.{}.{} = {}".format(host, name, stats[stat][name])
 
