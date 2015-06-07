@@ -7,15 +7,17 @@ import re
 
 DHCP_LEASES_FILE = "/storage/kaiju.leases"
 HOSTS = "/etc/hosts"
-
 TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
+STATSD_HOST = '10.0.42.28'
+STATSD_PORT = 8125
+STATSD_PREFIX = 'firewall'
 
 class PerIP(object):
     def __init__(self):
         self.statsd = StatsClient(
-            host='10.0.42.28',
-            port=8125,
-            prefix='firewall',
+            host=STATSD_HOST,
+            port=STATSD_PORT,
+            prefix=STATSD_PREFIX,
             maxudpsize=512)
         self.last_vals = self.get_stats()
         sleep(5)
@@ -25,35 +27,39 @@ class PerIP(object):
             p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             return iter(p.stdout.readline, b'')
         except Exception as e:
-            print "Can run '{}' because {}".format(command, e)
-            return dict()
+            raise ValueError(command, e)
 
     def get_iptables_data(self, table):
         results = list()
         command = ['/sbin/iptables', '-L', table, '-nvx']
         #command = "/sbin/iptables -L {} -nvx".format(table)
-        for line in self.run_command(command):
-            results.append(line)
-        res = dict()
-        for line in results[2:]:
-            result = line.split()
-            if result[7] != '0.0.0.0/0':
-                try:
-                    res[result[7]]['out_packets'] = result[0]
-                    res[result[7]]['out_bytes'] = result[1]
-                except KeyError:
-                    res[result[7]] = dict()
-                    res[result[7]]['out_packets'] = result[0]
-                    res[result[7]]['out_bytes'] = result[1]
-            elif result[8] != '0.0.0.0/0':
-                try:
-                    res[result[8]]['in_packets'] = result[0]
-                    res[result[8]]['in_bytes'] = result[1]
-                except KeyError:
-                    res[result[8]] = dict()
-                    res[result[8]]['in_packets'] = result[0]
-                    res[result[8]]['in_bytes'] = result[1]
-        return res
+        try:
+            command_results = self.run_command(command)
+        except ValueError as e:
+            raise
+        else:
+            for line in command_results:
+                results.append(line)
+            res = dict()
+            for line in results[2:]:
+                result = line.split()
+                if result[7] != '0.0.0.0/0':
+                    try:
+                        res[result[7]]['out_packets'] = result[0]
+                        res[result[7]]['out_bytes'] = result[1]
+                    except KeyError:
+                        res[result[7]] = dict()
+                        res[result[7]]['out_packets'] = result[0]
+                        res[result[7]]['out_bytes'] = result[1]
+                elif result[8] != '0.0.0.0/0':
+                    try:
+                        res[result[8]]['in_packets'] = result[0]
+                        res[result[8]]['in_bytes'] = result[1]
+                    except KeyError:
+                        res[result[8]] = dict()
+                        res[result[8]]['in_packets'] = result[0]
+                        res[result[8]]['in_bytes'] = result[1]
+            return res
 
     def get_stats(self):
         stats = dict()
@@ -85,6 +91,7 @@ class PerIP(object):
             print "{}".format(stat)
             for name in stats[stat]:
                 print "  {}".format(name)
+                print "    Checking if {} is in {}".format(stat, names.keys())
                 if stat in names.keys():
                     self.statsd.gauge("{}.{}".format(names[stat]['hostname'], name), stats[stat][name])
                     print "    hostname {} found".format(names[stat]['hostname'])
@@ -114,7 +121,7 @@ class PerIP(object):
         for line in hosts:
             if len(re.sub('\s*', '', line)) and not line.startswith('#'):
                 parts = line.split()
-                print parts
+                # print parts
                 leases[parts[0]] = dict()
                 leases[parts[0]]['hostname'] = parts[1]
         return leases
