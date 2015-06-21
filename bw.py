@@ -48,7 +48,7 @@ class BWReader(object):
 bwr = BWReader()
 statsd = StatsClient(host='10.0.42.28',
              port=8125,
-             prefix='firewall',
+             prefix='zilch',
              maxudpsize=512)
 
 while 1:

@@ -5,13 +5,13 @@ from statsd import StatsClient
 import subprocess
 import re
 
-DHCP_LEASES_FILE = "/storage/kaiju.leases"
+DHCP_LEASES_FILE = "/var/lib/dhcp/dnsmasq.leases"
 HOSTS = "/etc/hosts"
 # TABLES = ['INPUT', 'OUTPUT', 'FORWARD']
 TABLES = ['FORWARD']
 STATSD_HOST = '10.0.42.28'
 STATSD_PORT = 8125
-STATSD_PREFIX = 'firewall'
+STATSD_PREFIX = 'zilch'
 
 class PerIP(object):
     def __init__(self):
@@ -93,7 +93,7 @@ class PerIP(object):
                 if stat in names.keys():
                     host = names[stat]['hostname'].replace(".", "_")
                 elif stat == '10.0.42.1':
-                    host = 'localhost'
+                    host = 'gateway'
                 else:
                     host = stat.replace(".", "_")
                 self.statsd.gauge("byHost.{}.{}".format(host, name), stats[stat][name])
